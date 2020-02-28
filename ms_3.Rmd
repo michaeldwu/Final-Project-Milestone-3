@@ -1,0 +1,20 @@
+---
+title: "Final Project Milestone 3"
+author: "Michael Wu"
+date: "2/28/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(reprex)
+library(janitor)
+library(gt)
+library(readr)
+library(rvest)
+```
+
+```{r loading_data, echo=FALSE}
+xian_data <- read_csv('raw-data/xian_data.csv')
+```
