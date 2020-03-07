@@ -14,6 +14,7 @@ library(gt)
 library(readr)
 library(readxl)
 library(rvest)
+library(ggthemes)
 ```
 
 ### the Coronavirus Project.
@@ -25,6 +26,23 @@ The public response around the globe has been that of sheer panic, with ramifica
 For my Gov 1005 final project, I thought it would useful for the public discussion about the virus to explore how COVID-19 has affected global transportation chains compared to previous epidemics like the SARS outbreak of 2002, the H1N1 pandemic of 2009, and the Ebola outbreak from 2014-2016. Perhaps, seeing the global response in terms of executing travel bans or other forms of travel restrictions on previous outbreaks and how successful we were in stopping the spread of those outbreaks will provide a useful lesson for countries caught in today’s outbreak of when it is appropriate to institute severe travel restrictions. It’s probably also important that I standardize these spread results with some discussion related to a r-naught value (how spreadable a certain disease is), which I will do at a later point in time.
 
 As of this third milestone, I have managed to successfully obtain, clean, and tidy data on the coronavirus’s spread from Johns Hopkins University’s GitHub page. A selected sample of this data is displayed below in table format. I am still working on obtaining the current and historic flight data from flightradar24 – I signed up for a seven-day free trail account and sent them a request for this data last night and they have yet to respond back to me. I have also obtained some data from the SARS outbreak in 2002. There remains however, some additional work that I need to do, which is conduct some web scraping from the url links provided in the .xlsx file which has the breakdown of the total number of infections/deaths by country. I’m still searching for good Ebola and H1N1 data sets, but am confident that I will find these in due time.
+
+### New Updates for the Fourth Milestone
+
+As of the fourth milestone, I have created two new plots of the case counts in iran and South korea and begun preliminarily cleaning the data sets. I have also updated the data sets so they are up to date from this week's numbers. I came up with a really interesting new lead to build upon this data that I will also discuss below, and was wondering if you had any potential pointers on where I could find these data sets.
+
+I just came across an extremely disturbing report that the Iranian government is systematically suppressing nurses/doctors into changing their coronavirus death counts by changing the cause of death.
+
+After panicking for a few minutes about this and telling my friends about it, I realized that it would make for a really interesting final project for me to explore the current number of deaths from Iran over the past two weeks of the outbreak (maybe from hospital data or the country's reporting?), cross-reference that with what the UN projects their death rate/population to be, subtract out the number of reported cases, and see if I can find any number of unaccounted for deaths.
+
+I've found some UN population projection data here,
+https://www.un.org/en/development/desa/population/publications/database/index.asp
+
+But I'm having trouble finding the number of deaths out of Iran. Do you have any advice or thoughts on where I could find this?
+
+A secondary lead that I could follow is that I came across some comments on reddit which made a lot of sense to me and sparked a new idea. The comment was that a lot of these coronavirus cases that are not being reported/tested are likely being reported as seasonal flu deaths. So, I think it would make a lot of sense to somehow plot the number of cases/fatalities of the seasonal flu during this flu season, and see if there appear to be any unnatural spikes or unexplainable aspects of the data. I've found some data on influenza from the WHO but they seem to have a really small sample size. Any advice?
+https://www.who.int/influenza/gisrs_laboratory/flunet/en/
+
 
 $~$
 
@@ -140,12 +158,35 @@ covidata %>%
   
 ```
 
-```{r}
+$~$
+
+```{r plot-sk-covidata, echo = FALSE}
 sk_covidata <- covidata %>%
   filter(country_region == "South Korea")
 
 ggplot(sk_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases)) +
-  geom_point()
+  geom_line() +
+  labs(title = "South Korea Covid-19 Cases",
+       subtitle = "As of March 5th, 2020",
+       x = "Case Count",
+       y = "Date") +
+  theme_classic()
+  
+```
+
+$~$
+
+```{r plot-iran-covidata, echo = FALSE}
+iran_covidata <- covidata %>%
+  filter(country_region == "Iran")
+
+ggplot(iran_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases)) +
+  geom_line() +
+  labs(title = "Iran Covid-19 Cases",
+       subtitle = "As of March 5th, 2020",
+       x = "Case Count",
+       y = "Date") +
+  theme_classic()
   
 ```
 
