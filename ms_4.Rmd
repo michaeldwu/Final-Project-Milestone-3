@@ -27,8 +27,6 @@ For my Gov 1005 final project, I thought it would useful for the public discussi
 
 As of this third milestone, I have managed to successfully obtain, clean, and tidy data on the coronavirus’s spread from Johns Hopkins University’s GitHub page. A selected sample of this data is displayed below in table format. I am still working on obtaining the current and historic flight data from flightradar24 – I signed up for a seven-day free trail account and sent them a request for this data last night and they have yet to respond back to me. I have also obtained some data from the SARS outbreak in 2002. There remains however, some additional work that I need to do, which is conduct some web scraping from the url links provided in the .xlsx file which has the breakdown of the total number of infections/deaths by country. I’m still searching for good Ebola and H1N1 data sets, but am confident that I will find these in due time.
 
-### New Updates for the Fourth Milestone
-
 As of the fourth milestone, I have created two new plots of the case counts in iran and South korea and begun preliminarily cleaning the data sets. I have also updated the data sets so they are up to date from this week's numbers. I came up with a really interesting new lead to build upon this data that I will also discuss below, and was wondering if you had any potential pointers on where I could find these data sets.
 
 I just came across an extremely disturbing report that the Iranian government is systematically suppressing nurses/doctors into changing their coronavirus death counts by changing the cause of death.
@@ -43,6 +41,12 @@ But I'm having trouble finding the number of deaths out of Iran. Do you have any
 A secondary lead that I could follow is that I came across some comments on reddit which made a lot of sense to me and sparked a new idea. The comment was that a lot of these coronavirus cases that are not being reported/tested are likely being reported as seasonal flu deaths. So, I think it would make a lot of sense to somehow plot the number of cases/fatalities of the seasonal flu during this flu season, and see if there appear to be any unnatural spikes or unexplainable aspects of the data. I've found some data on influenza from the WHO but they seem to have a really small sample size. Any advice?
 https://www.who.int/influenza/gisrs_laboratory/flunet/en/
 
+
+### New Updates for the Fifth Milestone
+
+Hello! It's been a bit of crazy week having to move back home from campus and get adjusted to the quarantine life, but I feel reasonably satisfied with my progress as of the fifth milestone. First, I have updated the datasets so that they are in line with the most updated realtime data from the John Hopkins GitHub page. I have also created three separate graphs that plot the case numbers in the most affected countries and also the most affected provinces and states within China and US (wherever there's province/state data).
+
+Something really simple that I think would be interesting is to somehow also factor in each country's overall population so we can see if larger provinces, states, or countries experience more rapid case growth. I'm still working on obtaining the previous flu data from the WHO and will try to get that up and running next week. Please let me know if you have any general pieces of feedback!
 
 $~$
 
@@ -162,12 +166,12 @@ $~$
 
 ```{r plot-sk-covidata, echo = FALSE}
 sk_covidata <- covidata %>%
-  filter(country_region == "South Korea")
+  filter(country_region == "Korea, South")
 
-ggplot(sk_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases)) +
+sk_plot <- ggplot(sk_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases)) +
   geom_line() +
   labs(title = "South Korea Covid-19 Cases",
-       subtitle = "As of March 5th, 2020",
+       subtitle = "As of March 20th, 2020",
        x = "Case Count",
        y = "Date") +
   theme_classic()
@@ -180,13 +184,80 @@ $~$
 iran_covidata <- covidata %>%
   filter(country_region == "Iran")
 
-ggplot(iran_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases)) +
+iran_plot <- ggplot(iran_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases)) +
   geom_line() +
   labs(title = "Iran Covid-19 Cases",
-       subtitle = "As of March 5th, 2020",
+       subtitle = "As of March 20th, 2020",
        x = "Case Count",
        y = "Date") +
   theme_classic()
+  
+```
+
+```{r plot-italy-covidata, echo = FALSE}
+italy_covidata <- covidata %>%
+  filter(country_region == "Italy")
+
+italy_plot <- ggplot(italy_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases)) +
+  geom_line() +
+  labs(title = "Italy Covid-19 Cases",
+       subtitle = "As of March 20th, 2020",
+       x = "Case Count",
+       y = "Date") +
+  theme_classic()
+  
+```
+
+```{r plot-country-covidata, echo = FALSE}
+filtered_covidata <- covidata %>%
+  filter(country_region %in% c("Italy", "Korea, South", "Spain", "France", "Germany", "Iran")) %>%
+  filter(is.na(province_state) | province_state == "France")
+
+ggplot(filtered_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases, color = country_region)) +
+  geom_line() +
+  labs(title = "Confirmed Covid-19 Cases of the Most Affected Countries",
+       subtitle = "As of March 20th, Excluding China and the United States",
+       x = "Date",
+       y = "Case Count") +
+  theme_classic()
+  
+```
+
+```{r plot-US-covidata, echo = FALSE}
+# Find the most affected states in the United States
+# Would use log scales like in China's case below, but the case reporting is so erratic
+# that the graphs for log scales on the y-axis looks so poor.
+
+US_covidata <- covidata %>%
+  filter(country_region == "US") %>%
+  filter(province_state %in% c("New York", "Washington", "California", "New Jersey"))
+
+ggplot(US_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases, color = province_state)) +
+  geom_line() +
+  labs(title = "Confirmed Covid-19 Cases in China's 4 Most Affected Provinces",
+       subtitle = "As of March 20th, In Log Scale",
+       x = "Date",
+       y = "Case Count") +
+  theme_classic()
+  
+```
+
+```{r plot-china-covidata, echo = FALSE}
+# Find the most affected provinces in China
+# Need to use log-scales because Hubei has so more many cases than all other provinces combined
+
+China_covidata <- covidata %>%
+  filter(country_region == "China") %>%
+  filter(province_state %in% c("Hubei", "Guangdong", "Henan", "Zhejiang"))
+
+ggplot(China_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases, color = province_state)) +
+  geom_line() +
+  labs(title = "Confirmed Covid-19 Cases in China's 4 Most Affected Provinces",
+       subtitle = "In Log Scale",
+       x = "Date",
+       y = "Case Count") +
+  theme_classic() +
+  scale_y_continuous(trans='log10')
   
 ```
 
