@@ -27,6 +27,8 @@ For my Gov 1005 final project, I thought it would useful for the public discussi
 
 As of this third milestone, I have managed to successfully obtain, clean, and tidy data on the coronavirus’s spread from Johns Hopkins University’s GitHub page. A selected sample of this data is displayed below in table format. I am still working on obtaining the current and historic flight data from flightradar24 – I signed up for a seven-day free trail account and sent them a request for this data last night and they have yet to respond back to me. I have also obtained some data from the SARS outbreak in 2002. There remains however, some additional work that I need to do, which is conduct some web scraping from the url links provided in the .xlsx file which has the breakdown of the total number of infections/deaths by country. I’m still searching for good Ebola and H1N1 data sets, but am confident that I will find these in due time.
 
+### New Updates for the Fourth Milestone
+
 As of the fourth milestone, I have created two new plots of the case counts in iran and South korea and begun preliminarily cleaning the data sets. I have also updated the data sets so they are up to date from this week's numbers. I came up with a really interesting new lead to build upon this data that I will also discuss below, and was wondering if you had any potential pointers on where I could find these data sets.
 
 I just came across an extremely disturbing report that the Iranian government is systematically suppressing nurses/doctors into changing their coronavirus death counts by changing the cause of death.
@@ -42,12 +44,6 @@ A secondary lead that I could follow is that I came across some comments on redd
 https://www.who.int/influenza/gisrs_laboratory/flunet/en/
 
 
-### New Updates for the Fifth Milestone
-
-Hello! It's been a bit of crazy week having to move back home from campus and get adjusted to the quarantine life, but I feel reasonably satisfied with my progress as of the fifth milestone. First, I have updated the datasets so that they are in line with the most updated realtime data from the John Hopkins GitHub page. I have also created three separate graphs that plot the case numbers in the most affected countries and also the most affected provinces and states within China and US (wherever there's province/state data).
-
-Something really simple that I think would be interesting is to somehow also factor in each country's overall population so we can see if larger provinces, states, or countries experience more rapid case growth. I'm still working on obtaining the previous flu data from the WHO and will try to get that up and running next week. Please let me know if you have any general pieces of feedback!
-
 $~$
 
 ### Preliminary Data Sets for the Coronavirus and SARS Outbreaks
@@ -55,7 +51,6 @@ $~$
 ```{r loading_data, echo=FALSE, results='hide'}
 # Loading the untidy version of the coronavirus data forked from the Johns Hopkins' GitHub repo
 # Specifying column types to avoid any forms of errors
-
 untidy_covidata <- read_csv('JH-covid19-rawdata/time_series_19-covid-Confirmed.csv', col_types = cols(
                               .default = col_double(),
                               `Province/State` = col_character(),
@@ -63,12 +58,10 @@ untidy_covidata <- read_csv('JH-covid19-rawdata/time_series_19-covid-Confirmed.c
                               )
                             ) %>%
   clean_names()
-
 # This read_excel output is giving me some weird output of "new names: * `` -> ...1" and I am unsure of how to fix it
 # UPDATE: was able to fix it with help from the following rstudio community post
 # https://community.rstudio.com/t/how-to-make-read-excel-stops-messaging-when-using-col-names-false/30495/4
 # Loaded from Zhong Tron's Kaggle page, scraped originally from the WHO
-
 sarsdata <- read_excel(path = 'sars-rawdata/sars_final.xlsx', .name_repair = "minimal") %>%
   clean_names()
 ```
@@ -76,7 +69,6 @@ sarsdata <- read_excel(path = 'sars-rawdata/sars_final.xlsx', .name_repair = "mi
 ```{r tidying-data, echo=FALSE, results='hide'}
 # Tidying the untidy_covidata tibble using pivot_longer
 # Pivoting so that dates will now be row data entries instead of columns as they were originally
-
 covidata <- untidy_covidata %>%
   pivot_longer(
     cols = starts_with("x"),
@@ -93,7 +85,6 @@ $~$
 # Creating a gt() plot of the untidy_covidata just for reference
 # Including two important footnotes for this table
 # Only want to select a few columns that represent dates just to give the viewers a taste of the data
-
 untidy_covidata %>%
   slice(1:5) %>%
   select(province_state, country_region, lat, long, x1_22_20, x1_23_20, x1_24_20, x1_25_20, x2_27_20) %>%
@@ -129,7 +120,6 @@ $~$
 ```{r display-tidy-table, echo=FALSE}
 # Creating a gt() plot of the tidied covidata variable
 # Nothing too groundbreaking with the code here, just a standard gt() tibble
-
 covidata %>%
   slice(1:5)%>%
   gt() %>% 
@@ -166,12 +156,11 @@ $~$
 
 ```{r plot-sk-covidata, echo = FALSE}
 sk_covidata <- covidata %>%
-  filter(country_region == "Korea, South")
-
-sk_plot <- ggplot(sk_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases)) +
+  filter(country_region == "South Korea")
+ggplot(sk_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases)) +
   geom_line() +
   labs(title = "South Korea Covid-19 Cases",
-       subtitle = "As of March 20th, 2020",
+       subtitle = "As of March 5th, 2020",
        x = "Case Count",
        y = "Date") +
   theme_classic()
@@ -183,81 +172,13 @@ $~$
 ```{r plot-iran-covidata, echo = FALSE}
 iran_covidata <- covidata %>%
   filter(country_region == "Iran")
-
-iran_plot <- ggplot(iran_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases)) +
+ggplot(iran_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases)) +
   geom_line() +
   labs(title = "Iran Covid-19 Cases",
-       subtitle = "As of March 20th, 2020",
+       subtitle = "As of March 5th, 2020",
        x = "Case Count",
        y = "Date") +
   theme_classic()
-  
-```
-
-```{r plot-italy-covidata, echo = FALSE}
-italy_covidata <- covidata %>%
-  filter(country_region == "Italy")
-
-italy_plot <- ggplot(italy_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases)) +
-  geom_line() +
-  labs(title = "Italy Covid-19 Cases",
-       subtitle = "As of March 20th, 2020",
-       x = "Case Count",
-       y = "Date") +
-  theme_classic()
-  
-```
-
-```{r plot-country-covidata, echo = FALSE}
-filtered_covidata <- covidata %>%
-  filter(country_region %in% c("Italy", "Korea, South", "Spain", "France", "Germany", "Iran")) %>%
-  filter(is.na(province_state) | province_state == "France")
-
-ggplot(filtered_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases, color = country_region)) +
-  geom_line() +
-  labs(title = "Confirmed Covid-19 Cases of the Most Affected Countries",
-       subtitle = "As of March 20th, Excluding China and the United States",
-       x = "Date",
-       y = "Case Count") +
-  theme_classic()
-  
-```
-
-```{r plot-US-covidata, echo = FALSE}
-# Find the most affected states in the United States
-# Would use log scales like in China's case below, but the case reporting is so erratic
-# that the graphs for log scales on the y-axis looks so poor.
-
-US_covidata <- covidata %>%
-  filter(country_region == "US") %>%
-  filter(province_state %in% c("New York", "Washington", "California", "New Jersey"))
-
-ggplot(US_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases, color = province_state)) +
-  geom_line() +
-  labs(title = "Confirmed Covid-19 Cases in China's 4 Most Affected Provinces",
-       subtitle = "As of March 20th, In Log Scale",
-       x = "Date",
-       y = "Case Count") +
-  theme_classic()
-  
-```
-
-```{r plot-china-covidata, echo = FALSE}
-# Find the most affected provinces in China
-# Need to use log-scales because Hubei has so more many cases than all other provinces combined
-
-China_covidata <- covidata %>%
-  filter(country_region == "China") %>%
-  filter(province_state %in% c("Hubei", "Guangdong", "Henan", "Zhejiang"))
-
-ggplot(China_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases, color = province_state)) +
-  geom_line() +
-  labs(title = "Confirmed Covid-19 Cases in China's 4 Most Affected Provinces",
-       subtitle = "In Log Scale",
-       x = "Date",
-       y = "Case Count") +
-  theme_classic() +
-  scale_y_continuous(trans='log10')
   
 ```
 
@@ -266,7 +187,6 @@ $~$
 ```{r display-sars-table, echo=FALSE}
 # Creating a gt() plot of the tidied csars tibble
 # Nothing too groundbreaking with the code here, just a standard gt() tibble
-
 sarsdata %>%
   select(date, infected, mortality) %>%
   slice(1:5) %>%
@@ -298,3 +218,4 @@ sarsdata %>%
 ```
 
 $~$
+
