@@ -1,0 +1,275 @@
+---
+title: "Final Project Milestone 5"
+author: "Michael Wu"
+date: "3/20/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(reprex)
+library(janitor)
+library(gt)
+library(readr)
+library(readxl)
+library(rvest)
+library(ggthemes)
+```
+
+### the Coronavirus Project.
+
+With the WHO classifying the risk of the novel coronavirus to its highest levels today and public health magnates like Bill Gates calling the disease a pandemic, COVID-19 is both literally and figuratively unlike anything we have ever seen before.
+
+The public response around the globe has been that of sheer panic, with ramifications of the disease rippling through all facets of society. Grocery store shelves in Italy have gone empty from the public’s fear of food shortages and quarantine, investors on Wall Street have been whipped into a near state of hysteria with the DJI losing 10% of its value in just six sessions – the quickest correction ever.
+
+### New Updates for the Fifth Milestone
+
+Hello! It's been a bit of crazy week having to move back home from campus and get adjusted to the quarantine life, but I feel reasonably satisfied with my progress as of the fifth milestone. First, I have updated the datasets so that they are in line with the most updated realtime data from the John Hopkins GitHub page. I have also created three separate graphs that plot the case numbers in the most affected countries and also the most affected provinces and states within China and US (wherever there's province/state data).
+
+Something really simple that I think would be interesting is to somehow also factor in each country's overall population so we can see if larger provinces, states, or countries experience more rapid case growth. I'm still working on obtaining the previous flu data from the WHO and will try to get that up and running next week. Please let me know if you have any general pieces of feedback!
+
+
+```{r loading_data, echo=FALSE, results='hide'}
+# Loading the untidy version of the coronavirus data forked from the Johns Hopkins' GitHub repo
+# Specifying column types to avoid any forms of errors
+
+untidy_covidata <- read_csv('JH-covid19-rawdata/time_series_19-covid-Confirmed.csv', col_types = cols(
+                              .default = col_double(),
+                              `Province/State` = col_character(),
+                              `Country/Region` = col_character()
+                              )
+                            ) %>%
+  clean_names()
+
+# This read_excel output is giving me some weird output of "new names: * `` -> ...1" and I am unsure of how to fix it
+# UPDATE: was able to fix it with help from the following rstudio community post
+# https://community.rstudio.com/t/how-to-make-read-excel-stops-messaging-when-using-col-names-false/30495/4
+# Loaded from Zhong Tron's Kaggle page, scraped originally from the WHO
+
+sarsdata <- read_excel(path = 'sars-rawdata/sars_final.xlsx', .name_repair = "minimal") %>%
+  clean_names()
+```
+
+```{r tidying-data, echo=FALSE, results='hide'}
+# Tidying the untidy_covidata tibble using pivot_longer
+# Pivoting so that dates will now be row data entries instead of columns as they were originally
+
+covidata <- untidy_covidata %>%
+  pivot_longer(
+    cols = starts_with("x"),
+    names_to = "date",
+    names_prefix = "x",
+    values_to = "cases",
+    values_drop_na = TRUE
+  )
+```
+
+```{r display-untidy-table, echo=FALSE}
+# Creating a gt() plot of the untidy_covidata just for reference
+# Including two important footnotes for this table
+# Only want to select a few columns that represent dates just to give the viewers a taste of the data
+
+untidy_table <- untidy_covidata %>%
+  slice(1:5) %>%
+  select(province_state, country_region, lat, long, x1_22_20, x1_23_20, x1_24_20, x1_25_20, x2_27_20) %>%
+  gt() %>% 
+  tab_header(
+    title = "Glimpse of Untidy Covid-19 Data"
+  ) %>%
+  cols_label(
+    province_state = "Province/State",
+    country_region = "Country",
+    lat = "Latitude",
+    long = "Longitude"
+  ) %>%
+  cols_align(
+    align = "center"
+  ) %>%
+  tab_footnote(
+    footnote = "Source: Johns Hopkins University, Ryan Lau on Github",
+    locations = cells_title(
+      groups = "title"
+    )
+  ) %>%
+  tab_footnote(
+    footnote = "First five rows displayed only",
+    locations = cells_title(
+      groups = "title"
+    )
+  )
+```
+
+
+```{r display-tidy-table, echo=FALSE}
+# Creating a gt() plot of the tidied covidata variable
+# Nothing too groundbreaking with the code here, just a standard gt() tibble
+
+tided_table <- covidata %>%
+  slice(1:5)%>%
+  gt() %>% 
+  tab_header(
+    title = "Glimpse of Tidied Covid-19 Data"
+  ) %>%
+  cols_label(
+    province_state = "Province/State",
+    country_region = "Country",
+    lat = "Latitude",
+    long = "Longitude",
+    date = "Date",
+    cases = "Number of Cases"
+  ) %>%
+  cols_align(
+    align = "center"
+  ) %>%
+  tab_footnote(
+    footnote = "Source: Johns Hopkins University, Ryan Lau on Github",
+    locations = cells_title(
+      groups = "title"
+    )
+  ) %>%
+  tab_footnote(
+    footnote = "First five rows displayed only",
+    locations = cells_title(
+      groups = "title"
+    )
+  )
+  
+```
+
+```{r plot-sk-covidata, echo = FALSE}
+sk_covidata <- covidata %>%
+  filter(country_region == "Korea, South")
+
+sk_plot <- ggplot(sk_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases)) +
+  geom_line() +
+  labs(title = "South Korea Covid-19 Cases",
+       subtitle = "As of March 20th, 2020",
+       x = "Case Count",
+       y = "Date") +
+  theme_classic()
+  
+```
+
+```{r plot-iran-covidata, echo = FALSE}
+iran_covidata <- covidata %>%
+  filter(country_region == "Iran")
+
+iran_plot <- ggplot(iran_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases)) +
+  geom_line() +
+  labs(title = "Iran Covid-19 Cases",
+       subtitle = "As of March 20th, 2020",
+       x = "Case Count",
+       y = "Date") +
+  theme_classic()
+  
+```
+
+```{r plot-italy-covidata, echo = FALSE}
+italy_covidata <- covidata %>%
+  filter(country_region == "Italy")
+
+italy_plot <- ggplot(italy_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases)) +
+  geom_line() +
+  labs(title = "Italy Covid-19 Cases",
+       subtitle = "As of March 20th, 2020",
+       x = "Case Count",
+       y = "Date") +
+  theme_classic()
+  
+```
+
+### Preliminary Plots for the Coronavirus Outbreak
+
+$~$
+
+```{r plot-country-covidata, fig.align='center', echo = FALSE}
+filtered_covidata <- covidata %>%
+  filter(country_region %in% c("Italy", "Korea, South", "Spain", "France", "Germany", "Iran")) %>%
+  filter(is.na(province_state) | province_state == "France")
+
+ggplot(filtered_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases, color = country_region)) +
+  geom_line() +
+  labs(title = "Confirmed Covid-19 Cases of the Most Affected Countries",
+       subtitle = "As of March 20th, Excluding China and the United States",
+       x = "Date",
+       y = "Case Count") +
+  theme_classic()
+  
+```
+
+```{r plot-US-covidata, fig.align='center', echo = FALSE}
+# Find the most affected states in the United States
+# Would use log scales like in China's case below, but the case reporting is so erratic
+# that the graphs for log scales on the y-axis looks so poor.
+
+US_covidata <- covidata %>%
+  filter(country_region == "US") %>%
+  filter(province_state %in% c("New York", "Washington", "California", "New Jersey"))
+
+ggplot(US_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases, color = province_state)) +
+  geom_line() +
+  labs(title = "Confirmed Covid-19 Cases in China's 4 Most Affected Provinces",
+       subtitle = "As of March 20th, In Log Scale",
+       x = "Date",
+       y = "Case Count") +
+  theme_classic()
+  
+```
+
+```{r plot-china-covidata, fig.align='center', echo = FALSE}
+# Find the most affected provinces in China
+# Need to use log-scales because Hubei has so more many cases than all other provinces combined
+
+China_covidata <- covidata %>%
+  filter(country_region == "China") %>%
+  filter(province_state %in% c("Hubei", "Guangdong", "Henan", "Zhejiang"))
+
+ggplot(China_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases, color = province_state)) +
+  geom_line() +
+  labs(title = "Confirmed Covid-19 Cases in China's 4 Most Affected Provinces",
+       subtitle = "In Log Scale",
+       x = "Date",
+       y = "Case Count") +
+  theme_classic() +
+  scale_y_continuous(trans='log10')
+  
+```
+
+$~$
+
+```{r display-sars-table, echo=FALSE}
+# Creating a gt() plot of the tidied csars tibble
+# Nothing too groundbreaking with the code here, just a standard gt() tibble
+
+sars_table <- sarsdata %>%
+  select(date, infected, mortality) %>%
+  slice(1:5) %>%
+  gt() %>% 
+  tab_header(
+    title = "Glimpse of SARS Data"
+  ) %>%
+  cols_label(
+    date = "Date",
+    infected = "Infected",
+    mortality = "Deaths"
+  ) %>%
+  cols_align(
+    align = "center"
+  ) %>%
+  tab_footnote(
+    footnote = "Source: World Health Organization, Zhong Tron on Kaggle",
+    locations = cells_title(
+      groups = "title"
+    )
+  ) %>%
+  tab_footnote(
+    footnote = "First five rows displayed only",
+    locations = cells_title(
+      groups = "title"
+    )
+  )
+  
+```
+
+$~$
