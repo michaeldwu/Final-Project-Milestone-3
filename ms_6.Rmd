@@ -20,7 +20,9 @@ library(ggthemes)
 ### the Coronavirus Project.
 
 ### New Updates for the Sixth Milestone
+Have some big updates for this milestone. With the new record levels of unemployment coming out of the US Department of Labor, I figured it would be really interesting to explore how the unemployment claims filed across state vary based on the total number of confirmed cases. I presume that some of the states in the Midwest that have been slower to shut down from the coronavirus will have less claims of unemployment, and I feel like it'd be interesting to see if there's any general correlation. I have the data from the US Department of Labor found and downloaded, which wasn't exactly the easiest task. I'll be working on cleaning and tidying data this next week.
 
+I feel like I've made pretty good progress on the final project today, just finding a direction and second dataset feels huge to me!
 
 ```{r loading_data, echo=FALSE, results='hide'}
 # Loading the untidy version of the coronavirus data forked from the Johns Hopkins' GitHub repo
@@ -107,8 +109,14 @@ ggplot(filtered_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases, color = c
        y = "Case Count") +
   theme_classic()
 
+```
+```{r saving-image, echo=FALSE, results='hide'}
+# Saving the image from above
+
 ggsave(file = "finalproject_shiny/images/covid_cases_by_country.png", scale = 0.9)
 ```
+
+
 
 ```{r plot-US-covidata, fig.align='center', echo = FALSE}
 # Find the most affected states in the United States
@@ -129,5 +137,11 @@ ggplot(US_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases, color = provinc
   theme_classic()
   
 ```
+
+$~$
+
+### Shiny App Link
+
+https://michaeldwu.shinyapps.io/finalproject_shiny/
 
 $~$
