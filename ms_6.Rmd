@@ -106,7 +106,8 @@ ggplot(filtered_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases, color = c
        x = "Date",
        y = "Case Count") +
   theme_classic()
-  
+
+ggsave(file = "finalproject_shiny/images/covid_cases_by_country.png", scale = 0.9)
 ```
 
 ```{r plot-US-covidata, fig.align='center', echo = FALSE}
