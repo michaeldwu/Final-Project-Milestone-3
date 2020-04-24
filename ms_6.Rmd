@@ -110,6 +110,7 @@ ggplot(filtered_covidata, aes(x = as.Date(date,"%m_%d_%y"), y = cases, color = c
   theme_classic()
 
 ```
+
 ```{r saving-image, echo=FALSE, results='hide'}
 # Saving the image from above
 
